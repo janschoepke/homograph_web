@@ -1,5 +1,21 @@
 <template>
   <div class="main">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+      <div class="container">
+        <span class="navbar-brand js-scroll-trigger"><span class="highlight">h</span>omograph</span>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/janschoepke/homograph" target="_blank">GitHub</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://en.wikipedia.org/wiki/IDN_homograph_attack" target="_blank">about homograph attacks</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
     <header class="bg-primary text-white">
       <div class="container text-center">
         <input type="text" name="companyUrl" v-model="companyUrl" class="companyUrl" autofocus>
@@ -13,7 +29,7 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 mx-auto">
-            <h2>String analysis</h2>
+            <h2>string analysis</h2>
             <div class="chars">
               <div class="char">
                 <div>Char: </div>
@@ -33,7 +49,7 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 mx-auto">
-            <h2>possible risks</h2>
+            <h2>possible risks ({{potentialLeaksFound}})</h2>
           </div>
         </div>
         <div class="row">
@@ -50,18 +66,27 @@
                                    name="domains"
                                    :options="enabledDomains">
             </b-form-checkbox-group>
-            <button class="btn btn-primary" @click="whois()">check domain availability</button>
+
+            <p class="margin">
+              <button class="btn btn-primary" @click="whois()" :disabled="!selectedDomains.length">check domain availability</button>
+            </p>
 
             <b-alert variant="danger"
                      :show="apiError">
-              <strong>Oops!</strong> We currently have problems contacting our api. Please try again later.
+              <strong>Oops!</strong> We currently have problems contacting our API. Please try again later.
+            </b-alert>
+
+            <b-alert variant="danger"
+                     :show="limitError">
+              <strong>Oops!</strong> Our API only accepts requests for < 50 domain requests, you requested {{potentialLeaks.length * selectedDomains.length}}. Please shorten your input or the number of domain extensions.
             </b-alert>
 
 
-            <div v-if="selectedDomains.length">
-              <span class="domain-unknown">.{{selectedDomains[0]}}</span> <span>This domain has not been checked yet.</span><br>
-              <span class="text-warning">.{{selectedDomains[0]}}</span> <span>This domain is free to purchase.</span><br>
-              <span class="text-danger">.{{selectedDomains[0]}}</span> <span>This domain has already been purchased.</span>
+            <div v-if="selectedDomains.length" class="text-left background-white">
+              Legend:
+              <div class="separator"><span class="domain-unknown">.{{selectedDomains[0]}}</span> <span>This domain has not been checked yet.</span></div>
+              <div class="separator"><span class="domain-unknown text-success">.{{selectedDomains[0]}}</span> <span>This domain is free to purchase.</span></div>
+              <div><span class="domain-unknown text-danger">.{{selectedDomains[0]}}</span> <span>This domain has already been purchased.</span></div>
             </div>
 
           </div>
@@ -72,11 +97,11 @@
                   <span v-if="char.homographic"  v-b-popover.hover.auto="'Char: ' + char.letter + ' (' + char.letter.charCodeAt(0)+')\n Homographic: ' + char.homographicLetter + ' (' + char.homographicLetter.charCodeAt(0) + ')'" title="homographic character" class="homographic text-danger">{{char.homographicLetter}}</span>
                   <span v-if="!char.homographic">{{char.letter}}</span>
                 </span>
-                <span class="domain-com domain-unknown" v-if="selectedDomains.indexOf('com') > -1" v-bind:class="{'text-warning': potentialLeak.com === 2, 'text-danger': potentialLeak.com === 1 }">.com</span>
-                <span class="domain-net domain-unknown" v-if="selectedDomains.indexOf('net') > -1" v-bind:class="{'text-warning': potentialLeak.net === 2, 'text-danger': potentialLeak.net === 1 }">.net</span>
-                <span class="domain-eu domain-unknown" v-if="selectedDomains.indexOf('eu') > -1" v-bind:class="{'text-warning': potentialLeak.eu === 2, 'text-danger': potentialLeak.eu === 1 }">.eu</span>
-                <span class="domain-info domain-unknown" v-if="selectedDomains.indexOf('info') > -1" v-bind:class="{'text-warning': potentialLeak.info === 2, 'text-danger': potentialLeak.info === 1 }">.info</span>
-                <span class="domain-com domain-unknown" v-if="selectedDomains.indexOf('de') > -1" v-bind:class="{'text-warning': potentialLeak.de === 2, 'text-danger': potentialLeak.de === 1 }">.de</span>
+                <span class="domain-com domain-unknown" v-if="selectedDomains.indexOf('com') > -1" v-bind:class="{'text-success': potentialLeak.com === 2, 'text-danger': potentialLeak.com === 1 }">.com</span>
+                <span class="domain-net domain-unknown" v-if="selectedDomains.indexOf('net') > -1" v-bind:class="{'text-success': potentialLeak.net === 2, 'text-danger': potentialLeak.net === 1 }">.net</span>
+                <span class="domain-eu domain-unknown" v-if="selectedDomains.indexOf('eu') > -1" v-bind:class="{'text-success': potentialLeak.eu === 2, 'text-danger': potentialLeak.eu === 1 }">.eu</span>
+                <span class="domain-info domain-unknown" v-if="selectedDomains.indexOf('info') > -1" v-bind:class="{'text-success': potentialLeak.info === 2, 'text-danger': potentialLeak.info === 1 }">.info</span>
+                <span class="domain-com domain-unknown" v-if="selectedDomains.indexOf('de') > -1" v-bind:class="{'text-success': potentialLeak.de === 2, 'text-danger': potentialLeak.de === 1 }">.de</span>
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -94,6 +119,13 @@
         </div>
       </div>
     </section>
+
+    <footer class="py-5 bg-dark">
+      <div class="container">
+        <p class="m-0 text-center text-white">homograph by <a href="https://github.com/janschoepke" target="_blank">janschoepke</a> (2017)</p>
+      </div>
+      <!-- /.container -->
+    </footer>
 
   </div>
 </template>
@@ -131,7 +163,8 @@ export default {
         {text: '.de', value: 'de'}
       ],
       selectedDomains: [],
-      apiError: false
+      apiError: false,
+      limitError: false
     }
   },
   methods: {
@@ -183,7 +216,12 @@ export default {
         }).then(
         function success (response) {
           this.apiError = false
-          this.potentialLeaks = response.body
+          if (response.body !== 'ERR1') {
+            this.potentialLeaks = response.body
+            this.limitError = false
+          } else {
+            this.limitError = true
+          }
         },
         function fail (response) {
           this.apiError = true
@@ -228,8 +266,25 @@ export default {
 </script>
 
 <style scoped>
+  .navbar-brand {
+    cursor: default;
+    background: none;
+    background-image: none;
+    color: #ccc;
+  }
+  .navbar-brand .highlight {
+    color: #59badd;
+  }
+  @media screen and (max-width: 991px) {
+    .navbar-brand {
+      text-align: center;
+      width: 100%;
+    }
+  }
+
 h1, h2 {
   font-weight: normal;
+  margin-bottom: 15px;
 }
 
 ul {
@@ -243,11 +298,36 @@ li {
 }
 
 a {
-  color: #42b983;
+  color: #59badd;
 }
 
   .homographic {
     margin-left: 4px;
+  }
+
+  .margin {
+    margin: 20px 0;
+  }
+
+  .domain-unknown {
+    padding: 0.2rem 0.4rem;
+    font-size: 90%;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+
+  .background-white {
+    background-color: #ffffff;
+    padding: 20px;
+  }
+
+  .separator {
+    margin-bottom: 5px;
+  }
+
+  .list-group {
+    max-height: 400px;
+    overflow: scroll;
   }
 
 header {
@@ -261,7 +341,7 @@ header {
 }
 
 section {
-  padding: 150px 0;
+  padding: 160px 0;
 }
 
   .companyUrl {
