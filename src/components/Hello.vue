@@ -6,7 +6,7 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link" href="https://github.com/janschoepke/homograph" target="_blank">GitHub</a>
+              <a class="nav-link" href="https://github.com/janschoepke/homograph_web" target="_blank">GitHub</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="https://en.wikipedia.org/wiki/IDN_homograph_attack" target="_blank">about homograph attacks</a>
